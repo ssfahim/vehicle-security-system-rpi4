@@ -1,0 +1,12 @@
+[Unit]
+Description=Vehicle Security System
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/vehicle-security-system-rpi4/main.py
+WorkingDirectory=/home/pi/vehicle-security-system-rpi4
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
