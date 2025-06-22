@@ -7,8 +7,8 @@ def setup_sensors():
     GPIO.setup(config.BUZZER_PIN, GPIO.OUT)
     GPIO.setup(config.ALERT_LED_PIN, GPIO.OUT)
     GPIO.setup(config.ARM_DISARM_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    for pin in config.VIBRATION_PINS + config.REED_PINS:
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(config.VIBRATION_PINS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(config.REED_PINS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(config.ULTRASONIC_TRIGGER_PIN, GPIO.OUT)
     GPIO.setup(config.ULTRASONIC_ECHO_PIN, GPIO.IN)
 
@@ -26,11 +26,35 @@ def measure_distance():
 
     pulse_duration = pulse_end - pulse_start
     return pulse_duration * 17150  # cm
-
+    
+    
 def monitor_sensors():
-    if any(GPIO.input(pin) == 0 for pin in config.VIBRATION_PINS):
-        send_alert("Vibration Detected!")
-    if any(GPIO.input(pin) == 0 for pin in config.REED_PINS):
-        send_alert("Reed Switch Triggered!")
-    if measure_distance() < config.ULTRASONIC_DISTANCE_CM:
+    alert_triggered = False
+    
+
+    distance = measure_distance()
+    if distance < config.ULTRASONIC_DISTANCE_CM:
         send_alert("Ultrasonic Proximity Alert!")
+        print(distance)
+        alert_triggered = True
+        
+    elif GPIO.input(config.VIBRATION_PINS) == 0:
+        print("Vibration Detected!")
+        alert_triggered = True
+        
+    elif GPIO.input(config.REED_PINS) == 0:
+        print("Reed Switch Triggered!")
+        alert_triggered = True
+
+
+
+    # Flash LED and buzz if alert is triggered
+    if alert_triggered:
+        GPIO.output(config.ALERT_LED_PIN, GPIO.HIGH)
+        GPIO.output(config.BUZZER_PIN, GPIO.LOW)
+
+    else:
+        GPIO.output(config.BUZZER_PIN, GPIO.HIGH)
+        GPIO.output(config.ALERT_LED_PIN, GPIO.LOW)
+
+
